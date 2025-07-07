@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Анжела | AI-чат с обучением</title>
+    <title>Елизавета | AI-чат с загрузкой файлов</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <!-- Добавляем Tesseract.js для распознавания текста с изображений -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
         :root {
             --primary-color: #6c5ce7;
@@ -15,26 +18,174 @@
             --success-color: #00b894;
             --warning-color: #fdcb6e;
             --error-color: #d63031;
+            --lua-color: #000080;
+            
+            /* Основные цвета темы */
+            --bg-color: #f9f9f9;
+            --text-color: #2d3436;
+            --container-bg: white;
+            --message-bot-bg: #f5f6fa;
+            --message-user-bg: #6c5ce7;
+            --message-user-text: white;
+            --input-bg: white;
+            --input-border: #eee;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --timestamp-color: #b2bec3;
+            --quick-reply-bg: #f5f6fa;
+            --quick-reply-border: #dfe6e9;
+            --tool-bg: #f1f3f5;
+            --tool-border: #dee2e6;
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a2e;
+            --text-color: #f5f6fa;
+            --container-bg: #16213e;
+            --message-bot-bg: #0f3460;
+            --message-user-bg: #6c5ce7;
+            --message-user-text: white;
+            --input-bg: #0f3460;
+            --input-border: #1a1a2e;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --timestamp-color: #a0a0a0;
+            --quick-reply-bg: #0f3460;
+            --quick-reply-border: #1a1a2e;
+            --tool-bg: #1e2a4a;
+            --tool-border: #2d3748;
+        }
+
+        /* Добавляем стили для модуля пользовательских функций */
+        .custom-function-container {
+            background-color: var(--tool-bg);
+            border: 1px solid var(--tool-border);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
         }
         
+        .custom-function-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .custom-function-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .custom-function-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        .custom-function-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            margin-bottom: 10px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .custom-function-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .custom-function-btn:hover {
+            background-color: #5a4bd1;
+        }
+        
+        .custom-function-btn.save {
+            background-color: var(--success-color);
+        }
+        
+        .custom-function-btn.delete {
+            background-color: var(--error-color);
+        }
+        
+        .custom-functions-list {
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .custom-function-item {
+            background-color: var(--container-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .custom-function-item:hover {
+            background-color: var(--message-bot-bg);
+        }
+        
+        .custom-function-item-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .custom-function-item-desc {
+            font-size: 0.8rem;
+            color: var(--timestamp-color);
+        }
+        
+        .function-tag {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent;
         }
-        
+
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: #f9f9f9;
-            color: var(--dark-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             line-height: 1.6;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
             touch-action: manipulation;
+            transition: background-color 0.3s, color 0.3s;
         }
-        
+
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -43,16 +194,16 @@
             display: flex;
             flex-direction: column;
             width: 100%;
-            height: 100vh; /* Добавлено для мобильных устройств */
+            height: 100vh;
         }
-        
+
         header {
             text-align: center;
             margin-bottom: 15px;
             position: relative;
             padding: 0 5px;
         }
-        
+
         .logo {
             font-size: clamp(1.8rem, 6vw, 2.5rem);
             font-weight: 600;
@@ -62,64 +213,80 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .logo::before, .logo::after {
             content: "✦";
             margin: 0 10px;
             color: var(--accent-color);
             font-size: clamp(1.2rem, 5vw, 1.8rem);
         }
-        
+
         .tagline {
-            color: #636e72;
+            color: var(--timestamp-color);
             font-size: clamp(0.8rem, 3vw, 1rem);
             font-weight: 500;
         }
-        
+
+        .theme-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: transform 0.3s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
         .limit-counter {
-            background-color: var(--light-color);
+            background-color: var(--message-bot-bg);
             border-radius: 15px;
             padding: 6px 10px;
             margin: 8px auto;
             font-size: 0.75rem;
-            color: var(--dark-color);
+            color: var(--text-color);
             display: inline-block;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px var(--shadow-color);
         }
-        
+
         .limit-counter.warning {
             background-color: var(--warning-color);
             color: #000;
         }
-        
+
         .limit-counter.error {
             background-color: var(--error-color);
             color: white;
         }
-        
+
         .chat-container {
-            background-color: white;
+            background-color: var(--container-bg);
             border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 5px 15px var(--shadow-color);
             padding: 15px;
             flex: 1;
             display: flex;
             flex-direction: column;
             margin-bottom: 10px;
             overflow: hidden;
+            transition: background-color 0.3s;
         }
-        
+
         .chat-messages {
             flex: 1;
             overflow-y: auto;
             padding-right: 5px;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
-            /* Добавлено для мобильных устройств */
             max-height: calc(100vh - 250px);
             min-height: 60vh;
         }
-        
+
         .message {
             margin-bottom: 12px;
             max-width: 90%;
@@ -130,65 +297,66 @@
             line-height: 1.5;
             font-size: 0.9rem;
             word-break: break-word;
+            transition: background-color 0.3s;
         }
-        
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .bot-message {
-            background-color: var(--light-color);
+            background-color: var(--message-bot-bg);
             border-bottom-left-radius: 5px;
             align-self: flex-start;
-            color: var(--dark-color);
-            border: 1px solid #eee;
+            color: var(--text-color);
+            border: 1px solid var(--input-border);
         }
-        
+
         .user-message {
-            background-color: var(--primary-color);
-            color: white;
+            background-color: var(--message-user-bg);
+            color: var(--message-user-text);
             border-bottom-right-radius: 5px;
             align-self: flex-end;
             margin-left: auto;
         }
-        
+
         .input-area {
             display: flex;
             gap: 8px;
             margin-top: auto;
             padding: 5px;
             align-items: center;
-            /* Добавлено для мобильных устройств */
             position: sticky;
             bottom: 0;
-            background-color: #f9f9f9;
+            background-color: var(--bg-color);
             z-index: 10;
+            transition: background-color 0.3s;
         }
-        
+
         #user-input {
             flex: 1;
             padding: 12px 15px;
-            border: 2px solid #eee;
+            border: 2px solid var(--input-border);
             border-radius: 25px;
             font-size: 0.95rem;
             outline: none;
             transition: all 0.3s;
-            background-color: white;
+            background-color: var(--input-bg);
+            color: var(--text-color);
             min-height: 50px;
             max-height: 120px;
             resize: none;
             overflow-y: auto;
-            /* Добавлено для мобильных устройств */
             -webkit-appearance: none;
             -webkit-border-radius: 25px;
         }
-        
+
         #user-input:focus {
             border-color: var(--secondary-color);
             box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
         }
-        
+
         #send-button {
             background-color: var(--primary-color);
             color: white;
@@ -204,116 +372,105 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            /* Добавлено для мобильных устройств */
             -webkit-appearance: none;
             -webkit-border-radius: 25px;
         }
-        
+
         #send-button:hover {
             background-color: #5a4bd1;
         }
-        
+
         #send-button:active {
             transform: scale(0.95);
         }
-        
+
         .typing-indicator {
             display: flex;
             padding: 12px 15px;
-            background-color: var(--light-color);
+            background-color: var(--message-bot-bg);
             border-radius: 15px;
             border-bottom-left-radius: 5px;
             align-self: flex-start;
             margin-bottom: 12px;
             display: none;
         }
-        
+
         .typing-dot {
             width: 7px;
             height: 7px;
-            background-color: #636e72;
+            background-color: var(--timestamp-color);
             border-radius: 50%;
             margin: 0 2px;
             animation: typingAnimation 1.4s infinite ease-in-out;
         }
-        
-        .typing-dot:nth-child(1) {
-            animation-delay: 0s;
-        }
-        
-        .typing-dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        
-        .typing-dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        
+
         @keyframes typingAnimation {
             0%, 60%, 100% { transform: translateY(0); }
             30% { transform: translateY(-4px); }
         }
-        
+
         .timestamp {
             font-size: 0.65rem;
-            color: #b2bec3;
+            color: var(--timestamp-color);
             margin-top: 4px;
             text-align: right;
         }
-        
+
         .quick-replies {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
             margin-top: 10px;
         }
-        
+
         .quick-reply {
-            background-color: var(--light-color);
-            border: 1px solid #dfe6e9;
+            background-color: var(--quick-reply-bg);
+            border: 1px solid var(--quick-reply-border);
             border-radius: 20px;
             padding: 6px 12px;
             font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
+            color: var(--text-color);
         }
-        
+
         .quick-reply:hover {
-            background-color: #e0e0e0;
+            background-color: var(--secondary-color);
+            color: white;
         }
-        
+
         .quick-reply:active {
             transform: scale(0.95);
         }
-        
+
         .mood-indicator {
             font-size: 0.75rem;
             margin-top: 4px;
-            color: #636e72;
+            color: var(--timestamp-color);
             display: flex;
             align-items: center;
         }
-        
+
         .mood-icon {
             margin-right: 4px;
             font-size: 0.9rem;
         }
-        
+
         .learn-message {
             font-size: 0.75rem;
             color: var(--success-color);
             margin-top: 4px;
             font-style: italic;
         }
-        
+
         .status-message {
             font-size: 0.75rem;
-            color: #636e72;
+            color: var(--timestamp-color);
             margin-top: 4px;
             text-align: center;
             padding: 4px;
         }
-        
+
         .limit-message {
             font-size: 0.75rem;
             color: var(--error-color);
@@ -322,14 +479,13 @@
             padding: 4px;
             font-weight: 500;
         }
-        
-        /* Стили для кнопки озвучки */
+
         .speech-controls {
             display: flex;
             gap: 5px;
             margin-top: 5px;
         }
-        
+
         .speech-btn {
             background-color: var(--secondary-color);
             color: white;
@@ -342,88 +498,419 @@
             align-items: center;
             transition: all 0.2s;
         }
-        
+
         .speech-btn:hover {
             background-color: #8c7ae6;
         }
-        
+
         .speech-btn:active {
             transform: scale(0.95);
         }
-        
+
         .speech-btn.active {
             background-color: var(--accent-color);
         }
-        
-        /* Оптимизация для мобильных устройств */
+
+        .code-block {
+            background-color: var(--dark-color);
+            color: #f8f8f2;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            margin: 5px 0;
+            overflow-x: auto;
+            border-left: 3px solid var(--lua-color);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            color: #f8f8f2;
+            font-size: 0.7rem;
+        }
+
+        .copy-code {
+            background-color: var(--lua-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 5px;
+            font-size: 0.6rem;
+            cursor: pointer;
+        }
+
+        /* Стили для инструментов */
+        .tool-container {
+            background-color: var(--tool-bg);
+            border: 1px solid var(--tool-border);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .tool-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        .tool-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .tool-input {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .tool-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tool-button:hover {
+            background-color: #5a4bd1;
+        }
+
+        .tool-result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: var(--container-bg);
+            border-radius: 5px;
+            word-break: break-all;
+        }
+
+        .qr-code-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        #qr-code {
+            margin: 10px 0;
+        }
+
+        .download-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            margin-top: 5px;
+            transition: all 0.2s;
+        }
+
+        .download-btn:hover {
+            background-color: #00a884;
+        }
+
+        .password-strength {
+            height: 5px;
+            background-color: #ddd;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .strength-meter {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s;
+        }
+
+        .strength-weak {
+            background-color: var(--error-color);
+        }
+
+        .strength-medium {
+            background-color: var(--warning-color);
+        }
+
+        .strength-strong {
+            background-color: var(--success-color);
+        }
+
+        .color-preview {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+            margin: 10px auto;
+            border: 1px solid var(--input-border);
+        }
+
+        .converter-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .converter-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .converter-select {
+            padding: 8px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .note-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            margin-bottom: 10px;
+            resize: vertical;
+        }
+
+        .note-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .note-save {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .note-clear {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .timer-display {
+            font-size: 2rem;
+            text-align: center;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .timer-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timer-start {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .timer-pause {
+            background-color: var(--warning-color);
+            color: black;
+        }
+
+        .timer-reset {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .calculator-display {
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            text-align: right;
+            font-size: 1.5rem;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+
+        .calc-btn {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--tool-bg);
+            color: var(--text-color);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .calc-btn:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .calc-btn-operator {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .calc-btn-equals {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .calc-btn-clear {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        /* Стили для загрузки файлов */
+        .file-upload-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .file-upload-btn:hover {
+            background-color: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .file-info {
+            font-size: 0.8rem;
+            color: var(--timestamp-color);
+            margin-right: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
+        }
+
+        .file-message {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .file-icon {
+            margin-right: 5px;
+        }
+
+        /* Стили для предпросмотра изображений */
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .ocr-progress {
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            margin-top: 5px;
+            display: none;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 8px;
                 height: auto;
                 min-height: 100vh;
             }
-            
             .chat-container {
                 padding: 10px;
                 border-radius: 12px;
                 flex: 1 1 auto;
             }
-            
             .chat-messages {
                 max-height: calc(100vh - 220px);
                 min-height: calc(100vh - 220px);
             }
-            
             .message {
                 max-width: 95%;
                 padding: 10px 12px;
                 font-size: 0.85rem;
                 margin-bottom: 10px;
             }
-            
             #user-input {
                 padding: 10px 12px;
                 font-size: 0.9rem;
                 min-height: 45px;
             }
-            
             #send-button {
                 height: 45px;
                 padding: 0 15px;
                 font-size: 0.9rem;
             }
-            
             .typing-indicator {
                 padding: 10px 12px;
             }
-            
             .quick-reply {
                 padding: 5px 10px;
                 font-size: 0.7rem;
             }
-            
-            /* Специальные стили для iOS */
+            .tool-controls {
+                flex-direction: column;
+            }
+            .tool-input {
+                width: 100%;
+            }
+            .calculator-buttons {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .calc-btn {
+                padding: 8px;
+                font-size: 1rem;
+            }
             @supports (-webkit-touch-callout: none) {
                 .container {
                     min-height: -webkit-fill-available;
                     height: -webkit-fill-available;
                 }
-                
                 .chat-messages {
                     max-height: calc(100vh - 220px);
                     min-height: calc(100vh - 220px);
                 }
-            }
-        }
-        
-        /* Предотвращение масштабирования на iOS */
-        @supports (-webkit-touch-callout: none) {
-            body {
-                min-height: -webkit-fill-available;
-            }
-            
-            .container {
-                min-height: -webkit-fill-available;
             }
         }
     </style>
@@ -431,43 +918,48 @@
 <body>
     <div class="container">
         <header>
-            <div class="logo">Анжела</div>
-            <div class="tagline">Ваш AI-помощник с возможностью обучения</div>
+            <button class="theme-toggle" id="theme-toggle">🌙</button>
+            <div class="logo">Елизавета</div>
+            <div class="tagline">Ваш AI-помощник с загрузкой файлов</div>
             <div class="limit-counter" id="limit-counter"></div>
         </header>
-        
         <div class="chat-container">
             <div class="chat-messages" id="chat-messages">
                 <!-- Сообщения будут добавляться здесь -->
             </div>
-            
             <div class="typing-indicator" id="typing-indicator">
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>
             </div>
         </div>
-        
         <div class="input-area">
+            <label for="file-input" class="file-upload-btn">📁</label>
+            <input type="file" id="file-input" accept=".txt,.html,.htm,.jpg,.jpeg,.png,.gif" style="display: none;">
             <textarea id="user-input" placeholder="Напишите сообщение..." autocomplete="off" rows="1"></textarea>
             <button id="send-button">Отправить</button>
         </div>
     </div>
 
     <script>
+        // Элементы DOM
         const chatMessages = document.getElementById('chat-messages');
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
         const typingIndicator = document.getElementById('typing-indicator');
         const limitCounter = document.getElementById('limit-counter');
+        const themeToggle = document.getElementById('theme-toggle');
+        const fileInput = document.getElementById('file-input');
+        const fileUploadBtn = document.querySelector('.file-upload-btn');
         
-        // Ограничение запросов - 50 в час
+        // Ограничение запросов
         const REQUEST_LIMIT = 50;
         const HOUR_IN_MS = 60 * 60 * 1000;
         
         // Firebase configuration
         const FIREBASE_URL = 'https://i-love-angela-default-rtdb.firebaseio.com';
         const KNOWLEDGE_PATH = '/knowledge.json';
+        const CUSTOM_FUNCTIONS_PATH = '/customFunctions.json';
         
         // Состояние диалога
         const dialogState = {
@@ -487,16 +979,129 @@
                 rate: 1.0,
                 pitch: 1.0,
                 volume: 1.0
-            }
+            },
+            darkMode: localStorage.getItem('darkMode') === 'true',
+            activeTool: null,
+            timer: {
+                running: false,
+                startTime: 0,
+                elapsed: 0,
+                interval: null
+            },
+            notes: JSON.parse(localStorage.getItem('userNotes')) || {},
+            currentFile: null,
+            customFunctions: {} // Добавляем хранилище для пользовательских функций
         };
-        
-        // Инициализация синтеза речи
-        let speechSynthesis = window.speechSynthesis;
-        let speechUtterance = null;
-        let voices = [];
-        
+
+        // Применяем тему при загрузке
+        if (dialogState.darkMode) {
+            document.body.classList.add('dark-mode');
+            themeToggle.textContent = '☀️';
+        }
+
         // База знаний с возможностью расширения
         let knowledgeBase = {
+            programming: {
+                'lua': {
+                    description: "Lua - это легкий, высокоуровневый, мультипарадигмальный язык программирования, часто используемый для встраивания в приложения.",
+                    basics: `-- Это комментарий в Lua
+-- Основные типы данных
+local number = 42
+local string = "Привет, мир!"
+local boolean = true
+local table = {1, 2, 3, key = "value"}
+
+-- Условные операторы
+if number > 40 then
+    print("Число больше 40")
+elseif number < 40 then
+    print("Число меньше 40")
+else
+    print("Число равно 40")
+end
+
+-- Циклы
+for i = 1, 5 do
+    print("Итерация " .. i)
+end
+
+local j = 0
+while j < 3 do
+    print("While: " .. j)
+    j = j + 1
+end
+
+-- Функции
+function greet(name)
+    return "Привет, " .. name .. "!"
+end
+
+print(greet("Анжела"))`,
+                    functions: `-- Функции в Lua
+-- Объявление функции
+function add(a, b)
+    return a + b
+end
+
+-- Анонимные функции (лямбды)
+local multiply = function(a, b) 
+    return a * b 
+end
+
+-- Функции с переменным числом аргументов
+function sum(...)
+    local result = 0
+    for i, v in ipairs({...}) do
+        result = result + v
+    end
+    return result
+end
+
+-- Возврат нескольких значений
+function minmax(a, b)
+    if a < b then
+        return a, b
+    else
+        return b, a
+    end
+end
+
+local min, max = minmax(10, 5)
+print("Min:", min, "Max:", max)`,
+                    tables: `-- Таблицы в Lua (ассоциативные массивы)
+-- Создание таблицы
+local person = {
+    name = "Анжела",
+    age = 25,
+    skills = {"Lua", "AI", "Обучение"}
+}
+
+-- Доступ к элементам
+print(person.name) -- Анжела
+print(person["age"]) -- 25
+
+-- Итерация по таблице
+for key, value in pairs(person) do
+    if type(value) == "table" then
+        print(key .. ": " .. table.concat(value, ", "))
+    else
+        print(key .. ": " .. value)
+    end
+end
+
+-- Массивы (списки)
+local colors = {"красный", "зеленый", "синий"}
+for i, color in ipairs(colors) do
+    print(i, color)
+end`
+                },
+                'python': {
+                    description: "Python - это высокоуровневый язык программирования общего назначения."
+                },
+                'javascript': {
+                    description: "JavaScript - это язык программирования, который используется для создания интерактивных веб-страниц."
+                }
+            },
             games: {
                 'goday': {
                     levels: {
@@ -533,139 +1138,153 @@
                 'мотивация': {
                     tips: "Как мотивировать себя: 1) Найдите свою цель 2) Визуализируйте успех 3) Отмечайте прогресс"
                 }
+            },
+            tools: {
+                'генератор паролей': {
+                    description: "Генератор создает надежные пароли. Вы можете указать длину и какие символы использовать.",
+                    example: "Сгенерировать пароль 12 символов с цифрами и спецсимволами"
+                },
+                'qr код': {
+                    description: "Генератор QR-кодов. Введите текст или URL, и я создам QR-код, который можно скачать.",
+                    example: "Создать QR-код для https://example.com"
+                },
+                'конвертер валют': {
+                    description: "Конвертер валют с актуальными курсами. Укажите сумму и валюты для конвертации.",
+                    example: "Конвертировать 100 USD в RUB"
+                },
+                'цветовой код': {
+                    description: "Конвертер цветовых кодов между HEX, RGB и HSL форматами.",
+                    example: "Конвертировать #6c5ce7 в RGB"
+                },
+                'заметки': {
+                    description: "Персональные заметки, которые сохраняются в вашем браузере.",
+                    example: "Добавить заметку 'Купить молоко'"
+                },
+                'таймер': {
+                    description: "Таймер с возможностью запуска, паузы и сброса.",
+                    example: "Запустить таймер на 5 минут"
+                },
+                'калькулятор': {
+                    description: "Простой калькулятор для базовых математических операций.",
+                    example: "Посчитать 45 * 3.14"
+                },
+                'файлы': {
+                    description: "Загрузка и обработка текстовых файлов (TXT), изображений и HTML.",
+                    example: "Загрузить файл с заметками"
+                },
+                'пользовательские функции': {
+                    description: "Создание и управление пользовательскими функциями, доступными всем.",
+                    example: "Мои функции"
+                }
             }
         };
-        
+
         // Инициализация голосового синтеза
         function initSpeechSynthesis() {
-            // Проверяем поддержку API
             if (!speechSynthesis) {
                 console.warn('Web Speech API не поддерживается в этом браузере');
                 addStatusMessage('Озвучка не поддерживается вашим браузером');
                 dialogState.speechSettings.enabled = false;
                 return;
             }
-            
-            // Загружаем голоса (некоторые браузеры требуют времени для загрузки)
+
             function loadVoices() {
                 voices = speechSynthesis.getVoices();
-                
-                // Пытаемся найти русский голос
-                const russianVoices = voices.filter(voice => 
-                    voice.lang.includes('ru') || voice.lang.includes('RU') || 
-                    voice.name.includes('Russian') || voice.name.includes('russian'));
+                const russianVoices = voices.filter(voice => voice.lang.includes('ru') || voice.lang.includes('RU') || voice.name.includes('Russian') || voice.name.includes('russian'));
                 
                 if (russianVoices.length > 0) {
                     dialogState.speechSettings.voice = russianVoices[0];
                 } else if (voices.length > 0) {
                     dialogState.speechSettings.voice = voices[0];
                 }
-                
-                // Если голоса не загрузились сразу, пробуем снова через 1 секунду
+
                 if (voices.length === 0) {
                     setTimeout(loadVoices, 1000);
                 }
             }
-            
-            // Слушаем событие изменения голосов
+
             speechSynthesis.onvoiceschanged = loadVoices;
             loadVoices();
-            
-            // Добавляем сообщение о готовности озвучки
+
             if (speechSynthesis) {
                 addStatusMessage('Озвучка готова к использованию');
             }
         }
-        
+
         // Озвучивание текста
         function speakText(text) {
             if (!dialogState.speechSettings.enabled || !speechSynthesis) return;
             
-            // Останавливаем текущее воспроизведение, если есть
             speechSynthesis.cancel();
-            
-            // Создаем новое высказывание
             speechUtterance = new SpeechSynthesisUtterance(text);
-            
-            // Настраиваем параметры
             speechUtterance.voice = dialogState.speechSettings.voice;
             speechUtterance.rate = dialogState.speechSettings.rate;
             speechUtterance.pitch = dialogState.speechSettings.pitch;
             speechUtterance.volume = dialogState.speechSettings.volume;
             speechUtterance.lang = 'ru-RU';
-            
-            // Обработчики событий
+
             speechUtterance.onstart = function() {
                 console.log('Начало воспроизведения');
             };
-            
             speechUtterance.onend = function() {
                 console.log('Воспроизведение завершено');
             };
-            
             speechUtterance.onerror = function(event) {
                 console.error('Ошибка воспроизведения:', event.error);
             };
-            
-            // Запускаем воспроизведение
+
             speechSynthesis.speak(speechUtterance);
         }
-        
+
         // Остановка воспроизведения
         function stopSpeech() {
             if (speechSynthesis) {
                 speechSynthesis.cancel();
             }
         }
-        
-        // Переключение состояния озвучки
-        function toggleSpeech(enabled) {
-            dialogState.speechSettings.enabled = enabled;
-            if (!enabled) {
-                stopSpeech();
+
+        // Переключение темы
+        function toggleDarkMode() {
+            dialogState.darkMode = !dialogState.darkMode;
+            localStorage.setItem('darkMode', dialogState.darkMode);
+            
+            if (dialogState.darkMode) {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌙';
             }
-            // Можно добавить сохранение состояния в localStorage
         }
-        
+
         // Обновление счетчика лимита
         function updateLimitCounter() {
             const now = Date.now();
-            const requestData = JSON.parse(localStorage.getItem('requestData')) || { 
-                count: 0, 
-                firstRequestTime: now 
-            };
+            const requestData = JSON.parse(localStorage.getItem('requestData')) || { count: 0, firstRequestTime: now };
             
-            // Если прошёл час, сбрасываем счётчик
             if (now - requestData.firstRequestTime > HOUR_IN_MS) {
                 requestData.count = 0;
                 requestData.firstRequestTime = now;
                 localStorage.setItem('requestData', JSON.stringify(requestData));
             }
-            
+
             const remaining = REQUEST_LIMIT - requestData.count;
             const timeLeftMs = HOUR_IN_MS - (now - requestData.firstRequestTime);
             const timeLeftMin = Math.ceil(timeLeftMs / (60 * 1000));
-            
-            // Обновляем стиль в зависимости от оставшихся запросов
+
             limitCounter.className = 'limit-counter';
             if (remaining <= 10) {
                 limitCounter.classList.add(remaining <= 3 ? 'error' : 'warning');
             }
-            
             limitCounter.textContent = `Лимит: ${remaining}/${REQUEST_LIMIT} (сброс через ${timeLeftMin} мин)`;
-            
             return remaining;
         }
-        
+
         // Функция для проверки лимита запросов
         function checkRequestLimit() {
             const now = Date.now();
-            const requestData = JSON.parse(localStorage.getItem('requestData')) || { 
-                count: 0, 
-                firstRequestTime: now 
-            };
+            const requestData = JSON.parse(localStorage.getItem('requestData')) || { count: 0, firstRequestTime: now };
 
-            // Если прошёл час, сбрасываем счётчик
             if (now - requestData.firstRequestTime > HOUR_IN_MS) {
                 requestData.count = 1;
                 requestData.firstRequestTime = now;
@@ -674,7 +1293,6 @@
                 return true;
             }
 
-            // Проверяем лимит
             if (requestData.count >= REQUEST_LIMIT) {
                 const timeLeft = Math.ceil((HOUR_IN_MS - (now - requestData.firstRequestTime)) / (60 * 1000));
                 addLimitMessage(`Вы превысили лимит запросов (${REQUEST_LIMIT} в час). Попробуйте через ${timeLeft} минут.`);
@@ -682,31 +1300,28 @@
                 return false;
             }
 
-            // Увеличиваем счётчик
             requestData.count++;
             localStorage.setItem('requestData', JSON.stringify(requestData));
             updateLimitCounter();
-            
             return true;
         }
-        
+
         // Автоматическое увеличение высоты textarea
         function adjustTextareaHeight() {
             userInput.style.height = 'auto';
             userInput.style.height = (userInput.scrollHeight) + 'px';
             
-            // Ограничение максимальной высоты
             if (userInput.scrollHeight > 120) {
                 userInput.style.overflowY = 'auto';
             } else {
                 userInput.style.overflowY = 'hidden';
             }
         }
-        
+
         // Инициализация
         userInput.addEventListener('input', adjustTextareaHeight);
         adjustTextareaHeight();
-        
+
         // Функция для отправки запроса к Firebase
         async function firebaseRequest(method, path, data = null) {
             try {
@@ -717,17 +1332,13 @@
                         'Content-Type': 'application/json'
                     }
                 };
-                
                 if (data) {
                     options.body = JSON.stringify(data);
                 }
-                
                 const response = await fetch(url, options);
-                
                 if (!response.ok) {
                     throw new Error(`Ошибка Firebase: ${response.status}`);
                 }
-                
                 return await response.json();
             } catch (error) {
                 console.error('Ошибка при работе с Firebase:', error);
@@ -735,16 +1346,13 @@
                 return null;
             }
         }
-        
+
         // Загружаем сохраненные знания из Firebase
         async function loadLearnedData() {
             addStatusMessage("Синхронизация с сервером...");
-            
             try {
                 const data = await firebaseRequest('GET', KNOWLEDGE_PATH);
-                
                 if (data) {
-                    // Объединяем с существующей базой знаний
                     for (const category in data) {
                         if (!knowledgeBase[category]) {
                             knowledgeBase[category] = {};
@@ -765,38 +1373,43 @@
                 addStatusMessage("Ошибка загрузки данных с сервера");
             }
         }
-        
+
+        // Загрузка пользовательских функций из Firebase
+        async function loadCustomFunctions() {
+            try {
+                const data = await firebaseRequest('GET', CUSTOM_FUNCTIONS_PATH);
+                if (data) {
+                    dialogState.customFunctions = data;
+                    addStatusMessage("Пользовательские функции загружены");
+                }
+            } catch (error) {
+                console.error("Ошибка загрузки пользовательских функций:", error);
+                addStatusMessage("Ошибка загрузки пользовательских функций");
+            }
+        }
+
         // Сохраняем новые знания в Firebase
         async function saveLearnedData() {
             try {
-                // Отправляем только пользовательские данные (помеченные как user_*)
                 const userData = {};
-                
                 for (const category in knowledgeBase) {
                     userData[category] = {};
-                    
                     for (const topic in knowledgeBase[category]) {
                         const topicData = knowledgeBase[category][topic];
                         userData[category][topic] = {};
-                        
                         for (const key in topicData) {
                             if (key.startsWith('user_')) {
                                 userData[category][topic][key] = topicData[key];
                             }
                         }
-                        
-                        // Если в теме нет пользовательских данных, удаляем её из отправки
                         if (Object.keys(userData[category][topic]).length === 0) {
                             delete userData[category][topic];
                         }
                     }
-                    
-                    // Если в категории нет тем, удаляем её из отправки
                     if (Object.keys(userData[category]).length === 0) {
                         delete userData[category];
                     }
                 }
-                
                 if (Object.keys(userData).length > 0) {
                     addStatusMessage("Сохранение данных на сервер...");
                     await firebaseRequest('PATCH', KNOWLEDGE_PATH, userData);
@@ -807,7 +1420,7 @@
                 addStatusMessage("Ошибка сохранения данных на сервере");
             }
         }
-        
+
         // Добавляем статусное сообщение в чат
         function addStatusMessage(message) {
             const statusElement = document.createElement('div');
@@ -816,7 +1429,7 @@
             chatMessages.appendChild(statusElement);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
-        
+
         // Добавляем сообщение о лимите
         function addLimitMessage(message) {
             const limitElement = document.createElement('div');
@@ -825,12 +1438,13 @@
             chatMessages.appendChild(limitElement);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
-        
+
         // Инициализация - загружаем сохраненные данные
         loadLearnedData();
-        updateLimitCounter(); // Инициализация счетчика
-        initSpeechSynthesis(); // Инициализация синтеза речи
-        
+        loadCustomFunctions();
+        updateLimitCounter();
+        initSpeechSynthesis();
+
         // Эмоциональные реакции
         const emotionalResponses = {
             positive: ["Отлично! 😊", "Рада это слышать! ✨", "Прекрасные новости! 🌟"],
@@ -838,73 +1452,369 @@
             negative: ["Мне жаль это слышать. 😔", "Понимаю ваши чувства.", "Это действительно сложно."],
             confused: ["Не совсем поняла. Уточните?", "Можете переформулировать?", "Я не уверена, что поняла вопрос."]
         };
-        
+
         // Быстрые ответы с учетом контекста
         const quickReplies = {
             general: ["Как дела?", "Что ты умеешь?", "Расскажи о себе", "Как тебя научить?"],
+            programming: ["Пример кода на Lua", "Основы Lua", "Функции в Lua", "Таблицы в Lua"],
             games: ["Сколько уровней в GoDAY?", "Как пройти 10 уровень?", "Кто создал Russia Stars?"],
-            tech: ["Что такое ИИ?", "Как научиться программировать?", "Какие языки программирования популярны?"]
+            tech: ["Что такое ИИ?", "Как научиться программировать?", "Какие языки программирования популярны?"],
+            tools: ["Генератор паролей", "Создать QR-код", "Конвертер валют", "Загрузить файл"]
         };
-        
+
         // Приветственное сообщение
         setTimeout(() => {
-            addBotMessage("Привет! Я Анжела — ваш цифровой помощник с возможностью обучения. 😊 Вы можете не только спрашивать меня, но и учить новым вещам. Как мне к вам обращаться?", true);
+            addBotMessage("Привет! Я Елизавета — ваш цифровой помощник с возможностью загрузки файлов. 😊 Вы можете отправлять мне текстовые файлы (TXT, HTML) и изображения (JPG, PNG) для распознавания текста. Как мне к вам обращаться?", true);
         }, 500);
-        
+
+        // Обработчик загрузки файлов
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Показываем информацию о загружаемом файле
+            const fileInfo = document.createElement('div');
+            fileInfo.className = 'file-message';
+            fileInfo.innerHTML = `<span class="file-icon">📄</span> Загружаю файл: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+            chatMessages.appendChild(fileInfo);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Обработка HTML файлов
+            if (file.name.endsWith('.html') || file.name.endsWith('.htm')) {
+                handleHtmlFile(file);
+                return;
+            }
+
+            // Обработка изображений
+            if (file.type.startsWith('image/')) {
+                handleImageFile(file);
+                return;
+            }
+
+            // Обработка текстовых файлов
+            if (file.name.endsWith('.txt')) {
+                handleTextFile(file);
+                return;
+            }
+
+            // Если формат не поддерживается
+            addBotMessage('Пожалуйста, загружайте только файлы в формате TXT, HTML или изображения (JPG, PNG).');
+        }
+
+        // Обработка HTML файлов
+        function handleHtmlFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                dialogState.currentFile = {
+                    name: file.name,
+                    size: file.size,
+                    content: content
+                };
+
+                // Добавляем сообщение о успешной загрузке
+                const successMsg = document.createElement('div');
+                successMsg.className = 'status-message';
+                successMsg.textContent = `HTML файл "${file.name}" успешно загружен.`;
+                chatMessages.appendChild(successMsg);
+
+                // Создаем iframe для отображения HTML
+                const iframeContainer = document.createElement('div');
+                iframeContainer.style.marginTop = '10px';
+                iframeContainer.style.border = '1px solid var(--input-border)';
+                iframeContainer.style.borderRadius = '8px';
+                iframeContainer.style.overflow = 'hidden';
+                
+                const iframe = document.createElement('iframe');
+                iframe.style.width = '100%';
+                iframe.style.height = '300px';
+                iframe.style.border = 'none';
+                iframe.srcdoc = content;
+                
+                iframeContainer.appendChild(iframe);
+                chatMessages.appendChild(iframeContainer);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                // Добавляем кнопки для работы с файлом
+                const fileControls = document.createElement('div');
+                fileControls.className = 'speech-controls';
+                
+                const analyzeBtn = document.createElement('button');
+                analyzeBtn.className = 'speech-btn';
+                analyzeBtn.textContent = 'Анализировать';
+                analyzeBtn.addEventListener('click', () => analyzeHtmlContent(content));
+                
+                const clearBtn = document.createElement('button');
+                clearBtn.className = 'speech-btn';
+                clearBtn.textContent = 'Очистить';
+                clearBtn.addEventListener('click', () => {
+                    dialogState.currentFile = null;
+                    iframeContainer.remove();
+                    addStatusMessage('Файл удален из памяти.');
+                });
+                
+                fileControls.appendChild(analyzeBtn);
+                fileControls.appendChild(clearBtn);
+                chatMessages.appendChild(fileControls);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+            reader.onerror = function() {
+                addStatusMessage('Ошибка при чтении HTML файла.');
+            };
+            reader.readAsText(file);
+        }
+
+        // Анализ содержимого HTML файла
+        function analyzeHtmlContent(content) {
+            try {
+                // Создаем временный элемент для парсинга HTML
+                const parser = new DOMParser();
+                const htmlDoc = parser.parseFromString(content, 'text/html');
+                
+                // Извлекаем основную информацию
+                const title = htmlDoc.title || 'Нет заголовка';
+                const metaDescription = htmlDoc.querySelector('meta[name="description"]')?.content || 'Нет описания';
+                const h1 = htmlDoc.querySelector('h1')?.textContent || 'Нет H1';
+                const links = htmlDoc.querySelectorAll('a');
+                const images = htmlDoc.querySelectorAll('img');
+                const scripts = htmlDoc.querySelectorAll('script');
+                
+                let response = `Анализ HTML файла:\n`;
+                response += `- Заголовок: ${title}\n`;
+                response += `- Описание: ${metaDescription}\n`;
+                response += `- Основной заголовок (H1): ${h1}\n`;
+                response += `- Ссылок: ${links.length}\n`;
+                response += `- Изображений: ${images.length}\n`;
+                response += `- Скриптов: ${scripts.length}\n`;
+                
+                // Анализ структуры
+                const divs = htmlDoc.querySelectorAll('div');
+                const sections = htmlDoc.querySelectorAll('section');
+                const articles = htmlDoc.querySelectorAll('article');
+                
+                response += `\nСтруктура:\n`;
+                response += `- DIV: ${divs.length}\n`;
+                response += `- SECTION: ${sections.length}\n`;
+                response += `- ARTICLE: ${articles.length}\n`;
+                
+                // Проверка на наличие viewport для мобильных устройств
+                const viewport = htmlDoc.querySelector('meta[name="viewport"]');
+                response += `\nМобильная адаптация: ${viewport ? 'Да' : 'Нет'}\n`;
+                
+                addBotMessage(response);
+            } catch (error) {
+                console.error('Ошибка анализа HTML:', error);
+                addBotMessage('Не удалось проанализировать HTML файл. Возможно, он содержит ошибки.');
+            }
+        }
+
+        // Обработка изображений (OCR)
+        function handleImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                
+                // Создаем элемент для предпросмотра изображения
+                const imgPreview = document.createElement('img');
+                imgPreview.src = e.target.result;
+                imgPreview.className = 'image-preview';
+                imgPreview.style.display = 'block';
+                
+                // Создаем элемент для отображения прогресса OCR
+                const progressElement = document.createElement('div');
+                progressElement.className = 'ocr-progress';
+                progressElement.textContent = 'Распознавание текста...';
+                
+                chatMessages.appendChild(imgPreview);
+                chatMessages.appendChild(progressElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Используем Tesseract.js для распознавания текста
+                Tesseract.recognize(
+                    img,
+                    'rus+eng',
+                    {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                progressElement.textContent = `Распознавание: ${Math.round(m.progress * 100)}%`;
+                            }
+                        }
+                    }
+                ).then(({ data: { text } }) => {
+                    progressElement.textContent = 'Текст распознан!';
+                    
+                    // Добавляем распознанный текст в чат
+                    const textMessage = document.createElement('div');
+                    textMessage.className = 'message bot-message';
+                    textMessage.textContent = text.length > 0 ? text : 'Не удалось распознать текст на изображении.';
+                    chatMessages.appendChild(textMessage);
+                    
+                    // Добавляем кнопки для работы с текстом
+                    const textControls = document.createElement('div');
+                    textControls.className = 'speech-controls';
+                    
+                    const analyzeBtn = document.createElement('button');
+                    analyzeBtn.className = 'speech-btn';
+                    analyzeBtn.textContent = 'Анализировать';
+                    analyzeBtn.addEventListener('click', () => processUserMessage(text));
+                    
+                    const clearBtn = document.createElement('button');
+                    clearBtn.className = 'speech-btn';
+                    clearBtn.textContent = 'Очистить';
+                    clearBtn.addEventListener('click', () => {
+                        imgPreview.remove();
+                        textMessage.remove();
+                        progressElement.remove();
+                        textControls.remove();
+                    });
+                    
+                    textControls.appendChild(analyzeBtn);
+                    textControls.appendChild(clearBtn);
+                    chatMessages.appendChild(textControls);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }).catch(err => {
+                    console.error('Ошибка OCR:', err);
+                    progressElement.textContent = 'Ошибка распознавания текста';
+                });
+            };
+            reader.onerror = function() {
+                addStatusMessage('Ошибка при чтении изображения.');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Обработка текстовых файлов
+        function handleTextFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                dialogState.currentFile = {
+                    name: file.name,
+                    size: file.size,
+                    content: content
+                };
+
+                // Добавляем сообщение о успешной загрузке
+                const successMsg = document.createElement('div');
+                successMsg.className = 'status-message';
+                successMsg.textContent = `Файл "${file.name}" успешно загружен. Содержимое:`;
+                chatMessages.appendChild(successMsg);
+
+                // Добавляем содержимое файла в чат
+                const contentMsg = document.createElement('div');
+                contentMsg.className = 'message bot-message';
+                contentMsg.textContent = content.length > 1000 ? content.substring(0, 1000) + '...' : content;
+                chatMessages.appendChild(contentMsg);
+
+                // Добавляем кнопки для работы с файлом
+                const fileControls = document.createElement('div');
+                fileControls.className = 'speech-controls';
+                
+                const analyzeBtn = document.createElement('button');
+                analyzeBtn.className = 'speech-btn';
+                analyzeBtn.textContent = 'Анализировать';
+                analyzeBtn.addEventListener('click', () => analyzeFileContent(content));
+                
+                const clearBtn = document.createElement('button');
+                clearBtn.className = 'speech-btn';
+                clearBtn.textContent = 'Очистить';
+                clearBtn.addEventListener('click', () => {
+                    dialogState.currentFile = null;
+                    addStatusMessage('Файл удален из памяти.');
+                });
+                
+                fileControls.appendChild(analyzeBtn);
+                fileControls.appendChild(clearBtn);
+                chatMessages.appendChild(fileControls);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+            reader.onerror = function() {
+                addStatusMessage('Ошибка при чтении файла.');
+            };
+            reader.readAsText(file);
+        }
+
+        // Анализ содержимого текстового файла
+        function analyzeFileContent(content) {
+            if (!content || content.trim() === '') {
+                addBotMessage('Файл пуст или не содержит текста.');
+                return;
+            }
+
+            // Простой анализ содержимого
+            const lines = content.split('\n');
+            const words = content.split(/\s+/);
+            const chars = content.length;
+
+            let response = `Анализ файла:\n`;
+            response += `- Строк: ${lines.length}\n`;
+            response += `- Слов: ${words.length}\n`;
+            response += `- Символов: ${chars}\n\n`;
+
+            // Определяем тип содержимого
+            if (content.includes('function') || content.includes('var ') || content.includes('console.log')) {
+                response += 'Похоже на код JavaScript';
+            } else if (content.includes('def ') || content.includes('import ')) {
+                response += 'Похоже на код Python';
+            } else if (content.includes('local ') || content.includes('function ')) {
+                response += 'Похоже на код Lua';
+            } else if (lines.length > 50 && words.length > 200) {
+                response += 'Похоже на длинный текст или документ';
+            } else {
+                response += 'Текстовое содержимое';
+            }
+
+            addBotMessage(response);
+        }
+
         // Отправка сообщения с проверкой лимита
         function sendMessage() {
             const message = userInput.value.trim();
             if (message === '') return;
-            
-            // Проверяем лимит перед обработкой сообщения
+
             if (!checkRequestLimit()) {
                 userInput.value = '';
                 adjustTextareaHeight();
                 return;
             }
-            
+
             addUserMessage(message);
             userInput.value = '';
             adjustTextareaHeight();
-            
-            // Сохраняем контекст
+
             dialogState.context.push({ role: 'user', content: message });
             if (dialogState.context.length > 5) {
-                dialogState.context.shift(); // Ограничиваем историю
+                dialogState.context.shift();
             }
-            
-            // Анализируем настроение
+
             analyzeMood(message);
-            
-            // Показываем индикатор набора
+
             typingIndicator.style.display = 'flex';
             chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            // Имитируем задержку ответа
+
             setTimeout(() => {
                 typingIndicator.style.display = 'none';
                 processUserMessage(message);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }, 800 + Math.random() * 1200);
         }
-        
+
         // Анализ настроения пользователя
         function analyzeMood(message) {
             const lowerMessage = message.toLowerCase();
-            
             if (/(отлично|прекрасно|замечательно|рад|хорошо|супер)/.test(lowerMessage)) {
                 dialogState.userMood = 'positive';
             } else if (/(плохо|ужасно|грустно|обидно|раздражает)/.test(lowerMessage)) {
                 dialogState.userMood = 'negative';
             } else if (/имя|зовут|обращаться/.test(lowerMessage) && !dialogState.userName) {
-                // Попытка извлечь имя из сообщения
                 const nameMatch = message.match(/(меня зовут|мое имя|я) ([А-Яа-яЁёA-Za-z]+)/i);
                 if (nameMatch && nameMatch[2]) {
                     dialogState.userName = nameMatch[2];
                 }
             }
         }
-        
+
         // Добавление сообщения пользователя
         function addUserMessage(message) {
             const messageElement = document.createElement('div');
@@ -918,18 +1828,29 @@
             messageElement.appendChild(timestamp);
             chatMessages.appendChild(messageElement);
         }
-        
-        // Добавление сообщения бота
+
+        // Добавление сообщения бота с поддержкой кода и инструментов
         function addBotMessage(message, showQuickReplies = false) {
             const messageElement = document.createElement('div');
             messageElement.className = 'message bot-message';
-            messageElement.innerHTML = message.replace(/\n/g, '<br>');
             
+            // Обработка блоков кода
+            const processedMessage = message.replace(/```lua\n([\s\S]*?)```/g, function(match, code) {
+                return `<div class="code-block">
+                    <div class="code-header">
+                        <span>Lua</span>
+                        <button class="copy-code" onclick="copyToClipboard(this)">Копировать</button>
+                    </div>
+                    <pre>${escapeHtml(code)}</pre>
+                </div>`;
+            });
+            
+            messageElement.innerHTML = processedMessage.replace(/\n/g, '<br>');
+
             const timestamp = document.createElement('div');
             timestamp.className = 'timestamp';
             timestamp.textContent = getCurrentTime();
-            
-            // Добавляем индикатор настроения
+
             if (dialogState.userMood !== 'neutral') {
                 const moodElement = document.createElement('div');
                 moodElement.className = 'mood-indicator';
@@ -940,8 +1861,7 @@
                 moodElement.appendChild(document.createTextNode(dialogState.userMood === 'positive' ? ' Рада за вас!' : ' Понимаю вас...'));
                 messageElement.appendChild(moodElement);
             }
-            
-            // Добавляем элементы управления озвучкой
+
             const speechControls = document.createElement('div');
             speechControls.className = 'speech-controls';
             
@@ -964,7 +1884,6 @@
                 dialogState.speechSettings.enabled = !dialogState.speechSettings.enabled;
                 toggleBtn.classList.toggle('active');
                 toggleBtn.innerHTML = dialogState.speechSettings.enabled ? '🔈 Авто' : '🔇 Авто';
-                
                 if (dialogState.speechSettings.enabled) {
                     speakText(message.replace(/<br>/g, '\n').replace(/<\/?[^>]+(>|$)/g, ""));
                 } else {
@@ -976,48 +1895,72 @@
             speechControls.appendChild(stopBtn);
             speechControls.appendChild(toggleBtn);
             messageElement.appendChild(speechControls);
-            
             messageElement.appendChild(timestamp);
             chatMessages.appendChild(messageElement);
-            
-            // Сохраняем контекст
+
             dialogState.context.push({ role: 'bot', content: message });
-            
-            // Автоматически озвучиваем, если включено
+
             if (dialogState.speechSettings.enabled) {
                 speakText(message.replace(/<br>/g, '\n').replace(/<\/?[^>]+(>|$)/g, ""));
             }
-            
+
             if (showQuickReplies) {
                 addQuickReplies();
             }
         }
-        
+
+        // Функция для экранирования HTML
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Функция для копирования кода в буфер обмена
+        window.copyToClipboard = function(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('pre').textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Скопировано!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Ошибка копирования:', err);
+                button.textContent = 'Ошибка';
+            });
+        };
+
         // Добавление контекстных быстрых ответов
         function addQuickReplies() {
             const quickRepliesContainer = document.createElement('div');
             quickRepliesContainer.className = 'quick-replies';
-            
             let replies = [];
-            
-            // Выбираем релевантные быстрые ответы
+
             if (dialogState.currentTopic) {
-                if (dialogState.currentTopic.includes('goday') || dialogState.currentTopic.includes('russia')) {
+                if (dialogState.currentTopic.includes('lua') || dialogState.currentTopic.includes('программир')) {
+                    replies = [...quickReplies.programming];
+                } else if (dialogState.currentTopic.includes('goday') || dialogState.currentTopic.includes('russia')) {
                     replies = [...quickReplies.games];
-                } else if (dialogState.currentTopic.includes('ии') || dialogState.currentTopic.includes('программир')) {
+                } else if (dialogState.currentTopic.includes('ии') || dialogState.currentTopic.includes('технолог')) {
                     replies = [...quickReplies.tech];
+                } else if (dialogState.currentTopic.includes('парол') || dialogState.currentTopic.includes('qr') || dialogState.currentTopic.includes('инструмент') || dialogState.currentTopic.includes('файл')) {
+                    replies = [...quickReplies.tools];
                 }
             }
-            
-            // Добавляем общие вопросы, если не хватает
+
             if (replies.length < 4) {
                 replies = [...replies, ...quickReplies.general];
             }
-            
-            // Выбираем 4 случайных ответа
+
             const shuffled = [...new Set(replies)].sort(() => 0.5 - Math.random());
             const selectedReplies = shuffled.slice(0, 4);
-            
+
             selectedReplies.forEach(reply => {
                 const replyElement = document.createElement('div');
                 replyElement.className = 'quick-reply';
@@ -1028,73 +1971,888 @@
                 });
                 quickRepliesContainer.appendChild(replyElement);
             });
-            
             chatMessages.appendChild(quickRepliesContainer);
         }
-        
+
+        // Генерация случайного пароля
+        function generatePassword(length = 12, useNumbers = true, useSymbols = true) {
+            let chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            if (useNumbers) chars += '0123456789';
+            if (useSymbols) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+            
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            return password;
+        }
+
+        // Оценка сложности пароля
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            
+            // Длина
+            if (password.length > 10) strength += 2;
+            else if (password.length > 6) strength += 1;
+            
+            // Наличие разных типов символов
+            if (/[a-z]/.test(password)) strength += 1;
+            if (/[A-Z]/.test(password)) strength += 1;
+            if (/[0-9]/.test(password)) strength += 1;
+            if (/[^a-zA-Z0-9]/.test(password)) strength += 2;
+            
+            // Повторяющиеся символы
+            if (/(.)\1/.test(password)) strength -= 1;
+            
+            return Math.max(0, Math.min(3, strength));
+        }
+
+        // Создание QR-кода
+        function generateQRCode(text, containerId = 'qr-code') {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = '';
+                new QRCode(container, {
+                    text: text,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            }
+        }
+
+        // Скачивание QR-кода
+        function downloadQRCode(containerId = 'qr-code') {
+            const canvas = document.querySelector(`#${containerId} canvas`);
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = 'qr-code.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+        }
+
+        // Конвертация цветовых форматов
+        function convertColor(color, fromFormat, toFormat) {
+            if (fromFormat === 'hex' && toFormat === 'rgb') {
+                // HEX to RGB
+                const hex = color.replace('#', '');
+                const r = parseInt(hex.substring(0, 2), 16);
+                const g = parseInt(hex.substring(2, 4), 16);
+                const b = parseInt(hex.substring(4, 6), 16);
+                return `rgb(${r}, ${g}, ${b})`;
+            } else if (fromFormat === 'rgb' && toFormat === 'hex') {
+                // RGB to HEX
+                const rgb = color.match(/\d+/g);
+                if (rgb && rgb.length === 3) {
+                    const r = parseInt(rgb[0]).toString(16).padStart(2, '0');
+                    const g = parseInt(rgb[1]).toString(16).padStart(2, '0');
+                    const b = parseInt(rgb[2]).toString(16).padStart(2, '0');
+                    return `#${r}${g}${b}`.toUpperCase();
+                }
+            } else if (fromFormat === 'rgb' && toFormat === 'hsl') {
+                // RGB to HSL
+                const rgb = color.match(/\d+/g);
+                if (rgb && rgb.length === 3) {
+                    let r = parseInt(rgb[0]) / 255;
+                    let g = parseInt(rgb[1]) / 255;
+                    let b = parseInt(rgb[2]) / 255;
+                    
+                    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+                    let h, s, l = (max + min) / 2;
+
+                    if (max === min) {
+                        h = s = 0; // achromatic
+                    } else {
+                        let d = max - min;
+                        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                        switch (max) {
+                            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                            case g: h = (b - r) / d + 2; break;
+                            case b: h = (r - g) / d + 4; break;
+                        }
+                        h /= 6;
+                    }
+
+                    h = Math.round(h * 360);
+                    s = Math.round(s * 100);
+                    l = Math.round(l * 100);
+                    
+                    return `hsl(${h}, ${s}%, ${l}%)`;
+                }
+            }
+            return color;
+        }
+
+        // Форматирование валют
+        function formatCurrency(amount, currency) {
+            return new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: currency,
+                minimumFractionDigits: 2
+            }).format(amount);
+        }
+
+        // Сохранение заметки
+        function saveNote(noteId, content) {
+            dialogState.notes[noteId] = content;
+            localStorage.setItem('userNotes', JSON.stringify(dialogState.notes));
+            return `Заметка "${noteId}" сохранена`;
+        }
+
+        // Удаление заметки
+        function deleteNote(noteId) {
+            delete dialogState.notes[noteId];
+            localStorage.setItem('userNotes', JSON.stringify(dialogState.notes));
+            return `Заметка "${noteId}" удалена`;
+        }
+
+        // Форматирование времени для таймера
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Обновление таймера
+        function updateTimerDisplay() {
+            if (dialogState.timer.running) {
+                const now = Date.now();
+                const elapsed = dialogState.timer.elapsed + (now - dialogState.timer.startTime);
+                document.getElementById('timer-display').textContent = formatTime(elapsed);
+            } else {
+                document.getElementById('timer-display').textContent = formatTime(dialogState.timer.elapsed);
+            }
+        }
+
+        // Запуск таймера
+        function startTimer() {
+            if (!dialogState.timer.running) {
+                dialogState.timer.running = true;
+                dialogState.timer.startTime = Date.now();
+                dialogState.timer.interval = setInterval(updateTimerDisplay, 1000);
+            }
+        }
+
+        // Пауза таймера
+        function pauseTimer() {
+            if (dialogState.timer.running) {
+                dialogState.timer.running = false;
+                dialogState.timer.elapsed += Date.now() - dialogState.timer.startTime;
+                clearInterval(dialogState.timer.interval);
+            }
+        }
+
+        // Сброс таймера
+        function resetTimer() {
+            dialogState.timer.running = false;
+            dialogState.timer.elapsed = 0;
+            dialogState.timer.startTime = 0;
+            clearInterval(dialogState.timer.interval);
+            document.getElementById('timer-display').textContent = formatTime(0);
+        }
+
+        // Создание инструмента генерации пароля
+        function createPasswordGenerator() {
+            const toolHtml = `
+                <div class="tool-container">
+                    <div class="tool-title">Генератор паролей</div>
+                    <div class="tool-controls">
+                        <input type="number" id="password-length" class="tool-input" value="12" min="4" max="50" placeholder="Длина пароля">
+                        <label><input type="checkbox" id="use-numbers" checked> Цифры</label>
+                        <label><input type="checkbox" id="use-symbols" checked> Символы</label>
+                        <button id="generate-password-btn" class="tool-button">Сгенерировать</button>
+                    </div>
+                    <div class="tool-result" id="password-result"></div>
+                    <div class="password-strength">
+                        <div class="strength-meter" id="strength-meter"></div>
+                    </div>
+                </div>
+            `;
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message bot-message';
+            messageElement.innerHTML = toolHtml;
+            chatMessages.appendChild(messageElement);
+            
+            document.getElementById('generate-password-btn').addEventListener('click', () => {
+                const length = parseInt(document.getElementById('password-length').value) || 12;
+                const useNumbers = document.getElementById('use-numbers').checked;
+                const useSymbols = document.getElementById('use-symbols').checked;
+                
+                const password = generatePassword(length, useNumbers, useSymbols);
+                document.getElementById('password-result').textContent = password;
+                
+                const strength = checkPasswordStrength(password);
+                const meter = document.getElementById('strength-meter');
+                meter.className = 'strength-meter';
+                
+                if (strength === 1) {
+                    meter.classList.add('strength-weak');
+                    meter.style.width = '33%';
+                } else if (strength === 2) {
+                    meter.classList.add('strength-medium');
+                    meter.style.width = '66%';
+                } else if (strength === 3) {
+                    meter.classList.add('strength-strong');
+                    meter.style.width = '100%';
+                }
+            });
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Создание генератора QR-кода
+        function createQRGenerator() {
+            const toolHtml = `
+                <div class="tool-container">
+                    <div class="tool-title">Генератор QR-кода</div>
+                    <div class="tool-controls">
+                        <input type="text" id="qr-text" class="tool-input" placeholder="Введите текст или URL">
+                        <button id="generate-qr-btn" class="tool-button">Создать</button>
+                    </div>
+                    <div class="qr-code-container">
+                        <div id="qr-code"></div>
+                        <button id="download-qr-btn" class="download-btn">Скачать QR-код</button>
+                    </div>
+                </div>
+            `;
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message bot-message';
+            messageElement.innerHTML = toolHtml;
+            chatMessages.appendChild(messageElement);
+            
+            document.getElementById('generate-qr-btn').addEventListener('click', () => {
+                const text = document.getElementById('qr-text').value.trim();
+                if (text) {
+                    generateQRCode(text);
+                }
+            });
+            
+            document.getElementById('download-qr-btn').addEventListener('click', () => {
+                downloadQRCode();
+            });
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Создание конвертера валют
+        function createCurrencyConverter() {
+            const currencies = {
+                'USD': 'Доллар США',
+                'EUR': 'Евро',
+                'RUB': 'Российский рубль',
+                'GBP': 'Фунт стерлингов',
+                'JPY': 'Японская йена',
+                'CNY': 'Китайский юань'
+            };
+            
+            let currencyOptions = '';
+            for (const code in currencies) {
+                currencyOptions += `<option value="${code}">${code} - ${currencies[code]}</option>`;
+            }
+            
+            const toolHtml = `
+                <div class="tool-container">
+                    <div class="tool-title">Конвертер валют</div>
+                    <div class="converter-row">
+                        <input type="number" id="amount-from" class="converter-input" value="1" min="0" step="0.01" placeholder="Сумма">
+                        <select id="currency-from" class="converter-select">${currencyOptions}</select>
+                    </div>
+                    <div style="text-align: center; margin: 5px 0;">↓</div>
+                    <div class="converter-row">
+                        <input type="number" id="amount-to" class="converter-input" placeholder="Результат" readonly>
+                        <select id="currency-to" class="converter-select">${currencyOptions.replace('value="RUB"', 'value="RUB" selected')}</select>
+                    </div>
+                    <button id="convert-btn" class="tool-button" style="margin-top: 10px;">Конвертировать</button>
+                    <div class="status-message" id="converter-status">Курсы обновляются...</div>
+                </div>
+            `;
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message bot-message';
+            messageElement.innerHTML = toolHtml;
+            chatMessages.appendChild(messageElement);
+            
+            // Загрузка курсов валют (имитация)
+            setTimeout(() => {
+                document.getElementById('converter-status').textContent = 'Курсы загружены (1 USD = 75 RUB, 1 EUR = 85 RUB)';
+            }, 1500);
+            
+            document.getElementById('convert-btn').addEventListener('click', () => {
+                const amount = parseFloat(document.getElementById('amount-from').value) || 0;
+                const from = document.getElementById('currency-from').value;
+                const to = document.getElementById('currency-to').value;
+                
+                // Имитация конвертации (в реальном приложении нужно использовать API)
+                let result;
+                if (from === 'USD' && to === 'RUB') result = amount * 75;
+                else if (from === 'EUR' && to === 'RUB') result = amount * 85;
+                else if (from === 'RUB' && to === 'USD') result = amount / 75;
+                else if (from === 'RUB' && to === 'EUR') result = amount / 85;
+                else if (from === 'USD' && to === 'EUR') result = amount * 0.85;
+                else if (from === 'EUR' && to === 'USD') result = amount / 0.85;
+                else result = amount; // Если валюты совпадают или курс неизвестен
+                
+                document.getElementById('amount-to').value = result.toFixed(2);
+            });
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Создание конвертера цветов
+        function createColorConverter() {
+            const toolHtml = `
+                <div class="tool-container">
+                    <div class="tool-title">Конвертер цветов</div>
+                    <div class="tool-controls">
+                        <input type="text" id="color-input" class="tool-input" placeholder="Введите цвет (hex, rgb, hsl)">
+                        <select id="color-format" class="converter-select">
+                            <option value="auto">Автоопределение</option>
+                            <option value="hex">HEX</option>
+                            <option value="rgb">RGB</option>
+                            <option value="hsl">HSL</option>
+                        </select>
+                        <button id="convert-color-btn" class="tool-button">Конвертировать</button>
+                    </div>
+                    <div class="color-preview" id="color-preview"></div>
+                    <div class="tool-result" id="color-result"></div>
+                </div>
+            `;
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message bot-message';
+            messageElement.innerHTML = toolHtml;
+            chatMessages.appendChild(messageElement);
+            
+            document.getElementById('convert-color-btn').addEventListener('click', () => {
+                const colorInput = document.getElementById('color-input').value.trim();
+                const format = document.getElementById('color-format').value;
+                let result = '';
+                
+                if (colorInput) {
+                    // Автоопределение формата
+                    let detectedFormat = format;
+                    if (format === 'auto') {
+                        if (colorInput.startsWith('#')) detectedFormat = 'hex';
+                        else if (colorInput.startsWith('rgb')) detectedFormat = 'rgb';
+                        else if (colorInput.startsWith('hsl')) detectedFormat = 'hsl';
+                    }
+                    
+                    // Конвертация
+                    if (detectedFormat === 'hex') {
+                        const rgb = convertColor(colorInput, 'hex', 'rgb');
+                        const hsl = convertColor(rgb, 'rgb', 'hsl');
+                        result = `RGB: ${rgb}<br>HSL: ${hsl}`;
+                        document.getElementById('color-preview').style.backgroundColor = colorInput;
+                    } else if (detectedFormat === 'rgb') {
+                        const hex = convertColor(colorInput, 'rgb', 'hex');
+                        const hsl = convertColor(colorInput, 'rgb', 'hsl');
+                        result = `HEX: ${hex}<br>HSL: ${hsl}`;
+                        document.getElementById('color-preview').style.backgroundColor = colorInput;
+                    } else if (detectedFormat === 'hsl') {
+                        // Для простоты пропустим HSL -> RGB -> HEX
+                        result = `Поддержка HSL в демо ограничена`;
+                        document.getElementById('color-preview').style.backgroundColor = 'transparent';
+                    }
+                    
+                    document.getElementById('color-result').innerHTML = result;
+                }
+            });
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Создание инструмента заметок
+        function createNotesTool() {
+            const notesList = Object.keys(dialogState.notes).length > 0 ? 
+                Object.keys(dialogState.notes).map(noteId => `<option value="${noteId}">${noteId}</option>`).join('') : 
+                '<option value="">Нет сохраненных заметок</option>';
+            
+            const toolHtml = `
+                <div class="tool-container">
+                    <div class="tool-title">Персональные заметки</div>
+                    <div class="tool-controls">
+                        <input type="text" id="note-id" class="tool-input" placeholder="Название заметки">
+                        <select id="notes-list" class="converter-select">${notesList}</select>
+                    </div>
+                    <textarea id="note-content" class="note-textarea" placeholder="Содержание заметки"></textarea>
+                    <div class="note-controls">
+                        <button id="save-note-btn" class="tool-button note-save">Сохранить</button>
+                        <button id="delete-note-btn" class="tool-button note-clear">Удалить</button>
+                    </div>
+                </div>
+            `;
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message bot-message';
+            messageElement.innerHTML = toolHtml;
+            chatMessages.appendChild(messageElement);
+            
+            document.getElementById('notes-list').addEventListener('change', function() {
+                const noteId = this.value;
+                if (noteId && dialogState.notes[noteId]) {
+                    document.getElementById('note-id').value = noteId;
+                    document.getElementById('note-content').value = dialogState.notes[noteId];
+                }
+            });
+            
+            document.getElementById('save-note-btn').addEventListener('click', function() {
+                const noteId = document.getElementById('note-id').value.trim();
+                const content = document.getElementById('note-content').value.trim();
+                
+                if (noteId && content) {
+                    saveNote(noteId, content);
+                    addStatusMessage(`Заметка "${noteId}" сохранена`);
+                    
+                    // Обновляем список заметок
+                    const notesList = document.getElementById('notes-list');
+                    notesList.innerHTML = Object.keys(dialogState.notes).map(id => 
+                        `<option value="${id}">${id}</option>`
+                    ).join('');
+                    notesList.value = noteId;
+                }
+            });
+            
+            document.getElementById('delete-note-btn').addEventListener('click', function() {
+                const noteId = document.getElementById('note-id').value.trim();
+                if (noteId && dialogState.notes[noteId]) {
+                    deleteNote(noteId);
+                    addStatusMessage(`Заметка "${noteId}" удалена`);
+                    
+                    // Обновляем список заметок
+                    const notesList = document.getElementById('notes-list');
+                    notesList.innerHTML = Object.keys(dialogState.notes).length > 0 ? 
+                        Object.keys(dialogState.notes).map(id => `<option value="${id}">${id}</option>`).join('') : 
+                        '<option value="">Нет сохраненных заметок</option>';
+                    
+                    document.getElementById('note-id').value = '';
+                    document.getElementById('note-content').value = '';
+                }
+            });
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Создание таймера
+        function createTimer() {
+            const toolHtml = `
+                <div class="tool-container">
+                    <div class="tool-title">Таймер</div>
+                    <div class="timer-display" id="timer-display">00:00</div>
+                    <div class="timer-controls">
+                        <button id="start-timer-btn" class="timer-btn timer-start">Старт</button>
+                        <button id="pause-timer-btn" class="timer-btn timer-pause">Пауза</button>
+                        <button id="reset-timer-btn" class="timer-btn timer-reset">Сброс</button>
+                    </div>
+                </div>
+            `;
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message bot-message';
+            messageElement.innerHTML = toolHtml;
+            chatMessages.appendChild(messageElement);
+            
+            document.getElementById('start-timer-btn').addEventListener('click', startTimer);
+            document.getElementById('pause-timer-btn').addEventListener('click', pauseTimer);
+            document.getElementById('reset-timer-btn').addEventListener('click', resetTimer);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Создание калькулятора
+        function createCalculator() {
+            const toolHtml = `
+                <div class="tool-container">
+                    <div class="tool-title">Калькулятор</div>
+                    <div class="calculator-display" id="calc-display">0</div>
+                    <div class="calculator-buttons">
+                        <button class="calc-btn calc-btn-clear" onclick="handleCalcButton('C')">C</button>
+                        <button class="calc-btn" onclick="handleCalcButton('(')">(</button>
+                        <button class="calc-btn" onclick="handleCalcButton(')')">)</button>
+                        <button class="calc-btn calc-btn-operator" onclick="handleCalcButton('/')">/</button>
+                        
+                        <button class="calc-btn" onclick="handleCalcButton('7')">7</button>
+                        <button class="calc-btn" onclick="handleCalcButton('8')">8</button>
+                        <button class="calc-btn" onclick="handleCalcButton('9')">9</button>
+                        <button class="calc-btn calc-btn-operator" onclick="handleCalcButton('*')">×</button>
+                        
+                        <button class="calc-btn" onclick="handleCalcButton('4')">4</button>
+                        <button class="calc-btn" onclick="handleCalcButton('5')">5</button>
+                        <button class="calc-btn" onclick="handleCalcButton('6')">6</button>
+                        <button class="calc-btn calc-btn-operator" onclick="handleCalcButton('-')">-</button>
+                        
+                        <button class="calc-btn" onclick="handleCalcButton('1')">1</button>
+                        <button class="calc-btn" onclick="handleCalcButton('2')">2</button>
+                        <button class="calc-btn" onclick="handleCalcButton('3')">3</button>
+                        <button class="calc-btn calc-btn-operator" onclick="handleCalcButton('+')">+</button>
+                        
+                        <button class="calc-btn" onclick="handleCalcButton('0')">0</button>
+                        <button class="calc-btn" onclick="handleCalcButton('.')">.</button>
+                        <button class="calc-btn" onclick="handleCalcButton('%')">%</button>
+                        <button class="calc-btn calc-btn-equals" onclick="handleCalcButton('=')">=</button>
+                    </div>
+                </div>
+            `;
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message bot-message';
+            messageElement.innerHTML = toolHtml;
+            chatMessages.appendChild(messageElement);
+            
+            window.handleCalcButton = function(value) {
+                const display = document.getElementById('calc-display');
+                
+                if (value === 'C') {
+                    display.textContent = '0';
+                } else if (value === '=') {
+                    try {
+                        display.textContent = eval(display.textContent);
+                    } catch {
+                        display.textContent = 'Ошибка';
+                    }
+                } else {
+                    if (display.textContent === '0' || display.textContent === 'Ошибка') {
+                        display.textContent = value;
+                    } else {
+                        display.textContent += value;
+                    }
+                }
+            };
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Создание модуля пользовательских функций
+        function createCustomFunctionsTool() {
+            const toolHtml = `
+                <div class="custom-function-container">
+                    <div class="custom-function-title">
+                        <span>Пользовательские функции</span>
+                        <span class="function-tag">Beta</span>
+                    </div>
+                    
+                    <div class="custom-function-controls">
+                        <input type="text" id="function-name" class="custom-function-input" placeholder="Название функции">
+                        <input type="text" id="function-trigger" class="custom-function-input" placeholder="Триггер (например, 'калькулятор')">
+                    </div>
+                    
+                    <textarea id="function-code" class="custom-function-textarea" placeholder="Код функции (JavaScript)"></textarea>
+                    <textarea id="function-desc" class="custom-function-textarea" placeholder="Описание функции (как использовать)"></textarea>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button id="save-function-btn" class="custom-function-btn save">Сохранить функцию</button>
+                        <button id="test-function-btn" class="custom-function-btn">Протестировать</button>
+                        <button id="delete-function-btn" class="custom-function-btn delete">Удалить</button>
+                    </div>
+                    
+                    <div class="custom-functions-list" id="functions-list">
+                        <!-- Список функций будет загружаться здесь -->
+                    </div>
+                </div>
+            `;
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message bot-message';
+            messageElement.innerHTML = toolHtml;
+            chatMessages.appendChild(messageElement);
+            
+            // Загрузка списка функций
+            renderCustomFunctionsList();
+            
+            // Обработчики событий
+            document.getElementById('save-function-btn').addEventListener('click', saveCustomFunction);
+            document.getElementById('test-function-btn').addEventListener('click', testCustomFunction);
+            document.getElementById('delete-function-btn').addEventListener('click', deleteCustomFunction);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Отображение списка пользовательских функций
+        function renderCustomFunctionsList() {
+            const listContainer = document.getElementById('functions-list');
+            if (!listContainer) return;
+            
+            listContainer.innerHTML = '';
+            
+            if (Object.keys(dialogState.customFunctions).length === 0) {
+                listContainer.innerHTML = '<div style="text-align: center; color: var(--timestamp-color);">Нет сохраненных функций</div>';
+                return;
+            }
+            
+            for (const [id, func] of Object.entries(dialogState.customFunctions)) {
+                const functionItem = document.createElement('div');
+                functionItem.className = 'custom-function-item';
+                functionItem.dataset.id = id;
+                
+                functionItem.innerHTML = `
+                    <div class="custom-function-item-title">
+                        <span>${func.name}</span>
+                        <small>Триггер: ${func.trigger}</small>
+                    </div>
+                    <div class="custom-function-item-desc">${func.description || 'Без описания'}</div>
+                `;
+                
+                functionItem.addEventListener('click', () => loadCustomFunctionToForm(id));
+                listContainer.appendChild(functionItem);
+            }
+        }
+
+        // Загрузка функции в форму для редактирования
+        function loadCustomFunctionToForm(functionId) {
+            const func = dialogState.customFunctions[functionId];
+            if (!func) return;
+            
+            document.getElementById('function-name').value = func.name;
+            document.getElementById('function-trigger').value = func.trigger;
+            document.getElementById('function-code').value = func.code;
+            document.getElementById('function-desc').value = func.description || '';
+        }
+
+        // Сохранение пользовательской функции
+        async function saveCustomFunction() {
+            const name = document.getElementById('function-name').value.trim();
+            const trigger = document.getElementById('function-trigger').value.trim();
+            const code = document.getElementById('function-code').value.trim();
+            const description = document.getElementById('function-desc').value.trim();
+            
+            if (!name || !trigger || !code) {
+                return alert('Заполните все обязательные поля: название, триггер и код функции');
+            }
+            
+            const functionData = {
+                name,
+                trigger,
+                code,
+                description,
+                createdAt: new Date().toISOString(),
+                author: 'user' // В реальном приложении здесь должен быть ID пользователя
+            };
+            
+            try {
+                // Сохраняем в Firebase
+                const response = await firebaseRequest('POST', CUSTOM_FUNCTIONS_PATH, functionData);
+                
+                if (response && response.name) {
+                    // Обновляем локальное состояние
+                    dialogState.customFunctions[response.name] = functionData;
+                    
+                    // Очищаем форму
+                    document.getElementById('function-name').value = '';
+                    document.getElementById('function-trigger').value = '';
+                    document.getElementById('function-code').value = '';
+                    document.getElementById('function-desc').value = '';
+                    
+                    // Обновляем список
+                    renderCustomFunctionsList();
+                    
+                    addStatusMessage('Функция успешно сохранена!');
+                } else {
+                    addStatusMessage('Ошибка сохранения функции');
+                }
+            } catch (error) {
+                console.error('Ошибка сохранения функции:', error);
+                addStatusMessage('Ошибка сохранения функции: ' + error.message);
+            }
+        }
+
+        // Тестирование пользовательской функции
+        function testCustomFunction() {
+            const code = document.getElementById('function-code').value.trim();
+            if (!code) return alert('Введите код функции для тестирования');
+            
+            try {
+                // Создаем временную функцию для тестирования
+                const testFunc = new Function('message', 'return ' + code);
+                if (typeof testFunc === 'function') {
+                    const testResult = testFunc('тест');
+                    alert('Функция тестирована успешно! Результат: ' + (testResult || 'нет возвращаемого значения'));
+                } else {
+                    alert('Код должен возвращать функцию!');
+                }
+            } catch (error) {
+                alert('Ошибка в коде функции: ' + error.message);
+            }
+        }
+
+        // Удаление пользовательской функции
+        async function deleteCustomFunction() {
+            const functionId = prompt('Введите ID функции для удаления:');
+            if (!functionId || !dialogState.customFunctions[functionId]) {
+                return alert('Функция с таким ID не найдена');
+            }
+            
+            if (confirm('Вы уверены, что хотите удалить эту функцию? Это действие нельзя отменить.')) {
+                try {
+                    // Удаляем из Firebase
+                    await firebaseRequest('DELETE', `${CUSTOM_FUNCTIONS_PATH}/${functionId}`);
+                    
+                    // Удаляем из локального состояния
+                    delete dialogState.customFunctions[functionId];
+                    
+                    // Обновляем список
+                    renderCustomFunctionsList();
+                    
+                    addStatusMessage('Функция успешно удалена!');
+                } catch (error) {
+                    console.error('Ошибка удаления функции:', error);
+                    addStatusMessage('Ошибка удаления функции: ' + error.message);
+                }
+            }
+        }
+
+        // Обработка команд инструментов
+        function handleToolCommands(message) {
+            const lowerMessage = message.toLowerCase();
+            let response = null;
+            
+            // Проверка пользовательских функций
+            for (const [id, func] of Object.entries(dialogState.customFunctions)) {
+                if (lowerMessage.includes(func.trigger.toLowerCase())) {
+                    try {
+                        const customFunc = new Function('return ' + func.code)();
+                        if (typeof customFunc === 'function') {
+                            const result = customFunc(message);
+                            if (result) {
+                                return result;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Ошибка выполнения пользовательской функции:', error);
+                    }
+                }
+            }
+            
+            if (/(парол|генер.*парол)/.test(lowerMessage)) {
+                dialogState.activeTool = 'password';
+                createPasswordGenerator();
+                return "Генератор паролей активирован. Укажите длину и параметры пароля.";
+            }
+            
+            if (/(qr|код|штрихкод)/.test(lowerMessage)) {
+                dialogState.activeTool = 'qr';
+                createQRGenerator();
+                return "Генератор QR-кодов активирован. Введите текст или URL для кодирования.";
+            }
+            
+            if (/(конверт.*валют|валют|курс|рубл|доллар|евро)/.test(lowerMessage)) {
+                dialogState.activeTool = 'currency';
+                createCurrencyConverter();
+                return "Конвертер валют активирован. Укажите сумму и выберите валюты.";
+            }
+            
+            if (/(цвет|hex|rgb|hsl|конверт.*цвет)/.test(lowerMessage)) {
+                dialogState.activeTool = 'color';
+                createColorConverter();
+                return "Конвертер цветов активирован. Введите цвет в любом формате (HEX, RGB, HSL).";
+            }
+            
+            if (/(заметк|записк|напоминан)/.test(lowerMessage)) {
+                dialogState.activeTool = 'notes';
+                createNotesTool();
+                return "Инструмент заметок активирован. Вы можете создавать и сохранять персональные заметки.";
+            }
+            
+            if (/(таймер|секундомер|время)/.test(lowerMessage)) {
+                dialogState.activeTool = 'timer';
+                createTimer();
+                return "Таймер активирован. Используйте кнопки для управления.";
+            }
+            
+            if (/(калькулятор|посчитай|вычисли)/.test(lowerMessage)) {
+                dialogState.activeTool = 'calculator';
+                createCalculator();
+                return "Калькулятор активирован. Используйте кнопки для вычислений.";
+            }
+            
+            if (/(файл|загрузить|текстовый|документ|изображение|фото|картинка)/.test(lowerMessage)) {
+                fileInput.click();
+                return "Выберите файл для загрузки (TXT, HTML, JPG, PNG).";
+            }
+            
+            if (/(пользовательские функции|мои функции|кастомизация)/.test(lowerMessage)) {
+                dialogState.activeTool = 'custom-functions';
+                createCustomFunctionsTool();
+                return "Модуль пользовательских функций активирован. Вы можете создавать и управлять своими функциями.";
+            }
+            
+            if (/(инструмент|утилит|инструмент)/.test(lowerMessage)) {
+                return "Доступные инструменты:\n" +
+                    "1. Генератор паролей\n" +
+                    "2. Генератор QR-кодов\n" +
+                    "3. Конвертер валют\n" +
+                    "4. Конвертер цветов\n" +
+                    "5. Персональные заметки\n" +
+                    "6. Таймер\n" +
+                    "7. Калькулятор\n" +
+                    "8. Загрузка файлов (TXT, HTML, изображения)\n" +
+                    "9. Пользовательские функции (создание своих команд)\n\n" +
+                    "Скажите название инструмента, чтобы активировать его.";
+            }
+            
+            return null;
+        }
+
         // Обработка команд обучения
         async function handleLearningCommands(message) {
             const lowerMessage = message.toLowerCase();
-            
-            // Активация режима обучения
+
             if (/(научи|обучи|запомни|добавь информация)/.test(lowerMessage)) {
                 dialogState.isLearningMode = true;
-                return "Хорошо, я готова учиться! Скажите, к какой категории относится новая информация? (игры, технологии, личное)";
+                return "Хорошо, я готова учиться! Скажите, к какой категории относится новая информация? (программирование, игры, технологии, личное, инструменты)";
             }
-            
-            // Если в режиме обучения, обрабатываем поэтапно
+
             if (dialogState.isLearningMode) {
-                // Этап 1: Определение категории
                 if (!dialogState.learningData.category) {
-                    const categoryMatch = lowerMessage.match(/(игр|технолог|личн)/);
+                    const categoryMatch = lowerMessage.match(/(программир|игр|технолог|личн|инструмент)/);
                     if (categoryMatch) {
                         let category;
-                        if (categoryMatch[0].includes('игр')) category = 'games';
+                        if (categoryMatch[0].includes('программир')) category = 'programming';
+                        else if (categoryMatch[0].includes('игр')) category = 'games';
                         else if (categoryMatch[0].includes('технолог')) category = 'technology';
                         else if (categoryMatch[0].includes('личн')) category = 'personal';
+                        else if (categoryMatch[0].includes('инструмент')) category = 'tools';
                         
                         if (category) {
                             dialogState.learningData.category = category;
-                            return `Отлично, категория "${category}". Теперь укажите тему или название (например, "GoDAY" или "мотивация")`;
+                            return `Отлично, категория "${category}". Теперь укажите тему или название (например, "Lua" или "мотивация")`;
                         }
                     }
-                    return "Пожалуйста, укажите одну из категорий: игры, технологии, личное";
+                    return "Пожалуйста, укажите одну из категорий: программирование, игры, технологии, личное, инструменты";
                 }
-                
-                // Этап 2: Определение темы
+
                 if (dialogState.learningData.category && !dialogState.learningData.topic) {
                     const topic = message.trim();
                     if (topic.length > 2) {
                         dialogState.learningData.topic = topic.toLowerCase();
                         return `Тема "${topic}" принята. Теперь введите информацию, которую нужно запомнить по этой теме.`;
                     }
-                    return "Пожалуйста, укажите тему или название (например, \"GoDAY\" или \"мотивация\")";
+                    return "Пожалуйста, укажите тему или название (например, \"Lua\" или \"мотивация\")";
                 }
-                
-                // Этап 3: Получение информации
+
                 if (dialogState.learningData.category && dialogState.learningData.topic) {
-                    // Создаем структуру, если ее нет
                     if (!knowledgeBase[dialogState.learningData.category]) {
                         knowledgeBase[dialogState.learningData.category] = {};
                     }
                     if (!knowledgeBase[dialogState.learningData.category][dialogState.learningData.topic]) {
                         knowledgeBase[dialogState.learningData.category][dialogState.learningData.topic] = {};
                     }
-                    
-                    // Добавляем информацию с текущей датой
+
                     const infoKey = `user_${Date.now()}`;
                     knowledgeBase[dialogState.learningData.category][dialogState.learningData.topic][infoKey] = message;
-                    
-                    // Сохраняем в Firebase
+
                     await saveLearnedData();
-                    
-                    // Сбрасываем режим обучения
+
                     const learnedCategory = dialogState.learningData.category;
                     const learnedTopic = dialogState.learningData.topic;
                     dialogState.isLearningMode = false;
                     dialogState.learningData = { category: null, topic: null };
-                    
-                    // Добавляем сообщение об успешном обучении
+
                     const learnMsg = document.createElement('div');
                     learnMsg.className = 'learn-message';
                     learnMsg.textContent = `✓ Запомнила новую информацию по теме "${learnedTopic}" в категории "${learnedCategory}"`;
@@ -1103,24 +2861,48 @@
                     return "Спасибо! Я запомнила эту информацию. Могу чем-то еще помочь?";
                 }
             }
-            
             return null;
         }
-        
+
         // Улучшенная обработка сообщения пользователя
         async function processUserMessage(message) {
             const lowerMessage = message.toLowerCase();
             let response = null;
             let topic = null;
-            
-            // 0. Проверка команд обучения
+
+            // 0. Проверка пользовательских функций
+            for (const [id, func] of Object.entries(dialogState.customFunctions)) {
+                if (lowerMessage.includes(func.trigger.toLowerCase())) {
+                    try {
+                        const customFunc = new Function('return ' + func.code)();
+                        if (typeof customFunc === 'function') {
+                            const result = customFunc(message);
+                            if (result) {
+                                addBotMessage(result);
+                                return;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Ошибка выполнения пользовательской функции:', error);
+                    }
+                }
+            }
+
+            // 1. Проверка команд инструментов
+            response = handleToolCommands(message);
+            if (response) {
+                addBotMessage(response);
+                return;
+            }
+
+            // 2. Проверка команд обучения
             response = await handleLearningCommands(message);
             if (response) {
                 addBotMessage(response);
                 return;
             }
-            
-            // 1. Проверка специальных случаев (имя, приветствия)
+
+            // 3. Проверка специальных случаев (имя, приветствия)
             if (!dialogState.userName && /(зовут|имя|обращаться)/.test(lowerMessage)) {
                 const nameMatch = message.match(/(меня зовут|мое имя|я) ([А-Яа-яЁёA-Za-z]+)/i);
                 if (nameMatch && nameMatch[2]) {
@@ -1129,23 +2911,36 @@
                 } else {
                     response = "Как мне к вам обращаться?";
                 }
-            }
-            else if (dialogState.userName && /(поменяй имя|измени имя|сменить имя)/.test(lowerMessage)) {
+            } else if (dialogState.userName && /(поменяй имя|измени имя|сменить имя)/.test(lowerMessage)) {
                 response = "Конечно! Как вам теперь удобно, чтобы я вас называла?";
                 dialogState.userName = null;
             }
-            
-            // 2. Анализ по категориям
+
+            // 4. Анализ по категориям
             if (!response) {
+                // Программирование (Lua)
+                if (/lua|луа|код|программир|скрипт/.test(lowerMessage)) {
+                    topic = 'programming';
+                    if (/пример.*код|код.*пример|покажи код/.test(lowerMessage)) {
+                        response = "Вот пример простого кода на Lua:\n```lua\n-- Это комментарий в Lua\nprint('Привет, мир!')\n\n-- Функция для вычисления факториала\nfunction factorial(n)\n    if n == 0 then\n        return 1\n    else\n        return n * factorial(n - 1)\n    end\nend\n\nprint('Факториал 5:', factorial(5))```";
+                    } else if (/основы|базов|начать|синтаксис/.test(lowerMessage)) {
+                        response = "Основы программирования на Lua:\n" + knowledgeBase.programming.lua.basics;
+                    } else if (/функци|метод/.test(lowerMessage)) {
+                        response = "Функции в Lua:\n" + knowledgeBase.programming.lua.functions;
+                    } else if (/таблиц|массив|список/.test(lowerMessage)) {
+                        response = "Таблицы в Lua (аналоги массивов и словарей):\n" + knowledgeBase.programming.lua.tables;
+                    } else {
+                        response = knowledgeBase.programming.lua.description;
+                    }
+                }
                 // Игры
-                if (/goday|игра|уровень|гейм|прохождение/.test(lowerMessage)) {
+                else if (/goday|игра|уровень|гейм|прохождение/.test(lowerMessage)) {
                     topic = 'games';
                     if (/goday.*уровень|сколько уровней/.test(lowerMessage)) {
                         response = knowledgeBase.games.goday.levels.description;
                         if (/уровень [0-9]+/.test(lowerMessage)) {
                             const level = lowerMessage.match(/уровень ([0-9]+)/)[1];
-                            response = knowledgeBase.games.goday.levels.details[level] || 
-                                       `Уровень ${level}: Подробное описание недоступно. Могу дать общие советы по прохождению.`;
+                            response = knowledgeBase.games.goday.levels.details[level] || `Уровень ${level}: Подробное описание недоступно. Могу дать общие советы по прохождению.`;
                         }
                     } else if (/совет|подсказка|помощь/.test(lowerMessage)) {
                         response = knowledgeBase.games.goday.tips;
@@ -1188,25 +2983,43 @@
                     topic = 'personal';
                     response = knowledgeBase.personal.мотивация.tips;
                 }
+                // Инструменты
+                else if (/инструмент|утилит|инструмент/.test(lowerMessage)) {
+                    topic = 'tools';
+                    response = "Доступные инструменты:\n" +
+                        "1. Генератор паролей - создает надежные пароли\n" +
+                        "2. Генератор QR-кодов - преобразует текст в QR-код\n" +
+                        "3. Конвертер валют - переводит между валютами\n" +
+                        "4. Конвертер цветов - преобразует цветовые форматы\n" +
+                        "5. Персональные заметки - сохраняет ваши заметки\n" +
+                        "6. Таймер - отслеживает время\n" +
+                        "7. Калькулятор - выполняет вычисления\n" +
+                        "8. Загрузка файлов - работа с текстовыми файлами (TXT, HTML) и изображениями\n" +
+                        "9. Пользовательские функции - создание своих команд\n\n" +
+                        "Скажите название инструмента, чтобы активировать его.";
+                }
                 // Обучение
-                else if (/как тебя научить|как добавить информацию|как обучить/.test(lowerMessage)) {
+                else if (/как тебя научить|как добавить информация|как обучить/.test(lowerMessage)) {
                     response = "Вы можете научить меня новой информации! Просто скажите:\n" +
-                               "1. \"Научи меня\" или \"Добавь информация\"\n" +
-                               "2. Укажите категорию (игры, технологии, личное)\n" +
-                               "3. Укажите тему\n" +
-                               "4. Введите информацию, которую нужно запомнить\n\n" +
-                               "Например: \"Научи меня\", затем \"игры\", затем \"новая игра\", затем \"Это игра про космос\"";
+                        "1. \"Научи меня\" или \"Добавь информация\"\n" +
+                        "2. Укажите категорию (программирование, игры, технологии, личное, инструменты)\n" +
+                        "3. Укажите тему\n" +
+                        "4. Введите информацию, которую нужно запомнить\n\n" +
+                        "Например: \"Научи меня\", затем \"программирование\", затем \"Lua\", затем \"Lua использует оператор .. для конкатенации строк\"";
+                }
+                // Переключение темы
+                else if (/темн.*тема|светл.*тема/.test(lowerMessage)) {
+                    toggleDarkMode();
+                    response = dialogState.darkMode ? "Переключила на темную тему. 🌙" : "Переключила на светлую тему. ☀️";
                 }
             }
-            
-            // 3. Проверка пользовательских знаний (если не нашли в основной базе)
+
+            // 5. Проверка пользовательских знаний (если не нашли в основной базе)
             if (!response) {
                 for (const category in knowledgeBase) {
                     for (const topic in knowledgeBase[category]) {
-                        // Ищем вхождение темы в сообщении
                         if (lowerMessage.includes(topic.toLowerCase())) {
                             const topicData = knowledgeBase[category][topic];
-                            // Берем последнюю добавленную пользователем информацию
                             const userKeys = Object.keys(topicData).filter(k => k.startsWith('user_'));
                             if (userKeys.length > 0) {
                                 const latestKey = userKeys[userKeys.length - 1];
@@ -1218,54 +3031,45 @@
                     if (response) break;
                 }
             }
-            
-            // 4. Обработка эмоциональных реакций
+
+            // 6. Обработка эмоциональных реакций
             if (!response) {
                 if (dialogState.userMood === 'positive') {
                     const replies = emotionalResponses.positive;
                     response = replies[Math.floor(Math.random() * replies.length)];
-                } 
-                else if (dialogState.userMood === 'negative') {
+                } else if (dialogState.userMood === 'negative') {
                     const replies = emotionalResponses.negative;
                     response = replies[Math.floor(Math.random() * replies.length)] + " Могу чем-то помочь?";
                 }
             }
-            
-            // 5. Общие фразы
+
+            // 7. Общие фразы
             if (!response) {
                 if (/привет|здравствуй|добрый/.test(lowerMessage)) {
-                    response = dialogState.userName ? 
-                              `Привет, ${dialogState.userName}! Чем займёмся сегодня?` : 
-                              "Привет! Как я могу вам помочь?";
-                }
-                else if (/как дела|как ты/.test(lowerMessage)) {
+                    response = dialogState.userName ? `Привет, ${dialogState.userName}! Чем займёмся сегодня?` : "Привет! Как я могу вам помочь?";
+                } else if (/как дела|как ты/.test(lowerMessage)) {
                     response = "У меня всё отлично! Готова помочь вам с любыми вопросами. 😊";
-                }
-                else if (/что умеешь|возможности|функции/.test(lowerMessage)) {
+                } else if (/что умееш|возможности|функции/.test(lowerMessage)) {
                     response = `Я могу:
-1. Рассказать об играх (GoDAY, Russia Stars)
-2. Обсудить технологии (ИИ, программирование)
-3. Дать жизненные советы
-4. Поддержать беседу на разные темы
-5. Учиться новой информации от вас!
+1. Рассказать о программировании (Lua, Python, JavaScript)
+2. Обсудить игры (GoDAY, Russia Stars)
+3. Объяснить технологии (ИИ, программирование)
+4. Дать жизненные советы
+5. Использовать инструменты (пароли, QR-коды, файлы и другие)
+6. Поддержать беседу на разные темы
+7. Учиться новой информации от вас!
+8. Выполнять пользовательские функции
 
 Что вас интересует?`;
-                }
-                else if (/спасибо|благодарю/.test(lowerMessage)) {
-                    response = dialogState.userName ? 
-                              `Всегда пожалуйста, ${dialogState.userName}! 😊` : 
-                              "Рада была помочь! Обращайтесь ещё.";
-                }
-                else if (/пока|до свидан|завершить/.test(lowerMessage)) {
-                    response = dialogState.userName ? 
-                              `До свидания, ${dialogState.userName}! Возвращайтесь, если будут вопросы. 👋` : 
-                              "До новых встреч! Буду рада помочь снова.";
+                } else if (/спасибо|благодарю/.test(lowerMessage)) {
+                    response = dialogState.userName ? `Всегда пожалуйста, ${dialogState.userName}! 😊` : "Рада была помочь! Обращайтесь ещё.";
+                } else if (/пока|до свидан|завершить/.test(lowerMessage)) {
+                    response = dialogState.userName ? `До свидания, ${dialogState.userName}! Возвращайтесь, если будут вопросы. 👋` : "До новых встреч! Буду рада помочь снова.";
                 }
             }
-            
-            // 6. Если ответ не найден, используем контекстный ответ
+
+            // 8. Если ответ не найден, используем контекстный ответ
             if (!response) {
-                // Пытаемся использовать контекст предыдущих сообщений
                 if (dialogState.context.length > 0) {
                     const lastUserMessage = dialogState.context[dialogState.context.length - 2]?.content;
                     if (lastUserMessage) {
@@ -1276,52 +3080,48 @@
                         }
                     }
                 }
-                
-                // Если контекст не помог, используем общие фразы
+
                 if (!response) {
-                    const lastTopicPhrase = dialogState.currentTopic ? 
-                        `Вы упоминали ${dialogState.currentTopic}. Хотите продолжить эту тему?` : 
-                        "";
-                    
+                    const lastTopicPhrase = dialogState.currentTopic ? `Вы упоминали ${dialogState.currentTopic}. Хотите продолжить эту тему?` : "";
                     const replies = [
                         `Не совсем поняла ваш вопрос. ${lastTopicPhrase}`,
                         "Можете переформулировать вопрос? Я не совсем поняла.",
                         "Интересный вопрос! К сожалению, у меня нет точного ответа. Может, обсудим что-то другое?",
                         "Я всё ещё учусь. Можете задать вопрос по-другому?",
-                        "Хотите научить меня ответу на этот вопрос? Скажите \"Научи меня\""
+                        "Хотите научить меня ответу на этот вопрос? Скажите \"Научи меня\"",
+                        "Попробуйте использовать одну из пользовательских функций или создать свою!"
                     ];
-                    
                     response = replies[Math.floor(Math.random() * replies.length)];
                 }
             }
-            
+
             // Обновляем текущую тему
             if (topic) {
                 dialogState.currentTopic = topic;
             }
-            
+
             // Добавляем эмоциональную окраску
             if (dialogState.userMood === 'positive' && !/[😊✨🌟]/.test(response)) {
                 response += " 😊";
             } else if (dialogState.userMood === 'negative' && !/[😔]/.test(response)) {
                 response = "Понимаю... " + response;
             }
-            
+
             // Персонализация ответа
             if (dialogState.userName && !new RegExp(dialogState.userName, 'i').test(response)) {
                 response = response.replace(/([.!?] )/, `, ${dialogState.userName}$1`);
             }
-            
+
             // Случайным образом показываем быстрые ответы (40% chance)
             addBotMessage(response, Math.random() < 0.4);
         }
-        
+
         // Получение текущего времени
         function getCurrentTime() {
             const now = new Date();
             return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         }
-        
+
         // Обработчики событий
         sendButton.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', function(e) {
@@ -1331,25 +3131,23 @@
             }
         });
         
+        themeToggle.addEventListener('click', toggleDarkMode);
+        fileInput.addEventListener('change', handleFileUpload);
+
         // Фокус на поле ввода при загрузке
         window.addEventListener('load', () => {
             userInput.focus();
         });
-        
+
         // Обновляем счетчик каждую минуту
         setInterval(updateLimitCounter, 60000);
-        
-        // Добавляем обработчик для виртуальной клавиатуры на мобильных устройствах
+
+        // Обработчик для виртуальной клавиатуры на мобильных устройствах
         if ('visualViewport' in window) {
             const visualViewport = window.visualViewport;
-            
             visualViewport.addEventListener('resize', function() {
-                // Проверяем, открыта ли клавиатура (высота viewport уменьшилась)
                 if (visualViewport.height < window.innerHeight) {
-                    // Прокручиваем чат вниз
                     chatMessages.scrollTop = chatMessages.scrollHeight;
-                    
-                    // Плавно перемещаем поле ввода в видимую область
                     setTimeout(() => {
                         userInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     }, 100);
